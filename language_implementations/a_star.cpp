@@ -10,7 +10,7 @@ using namespace std;
 struct Node {
     int x, y, g, h;
     bool operator<(const Node& other) const {
-        return g + h > other.g + other.h; // Min-heap
+        return g + h > other.g + other.h;
     }
 };
 
@@ -24,6 +24,7 @@ bool isValid(int x, int y, const vector<vector<int>>& grid) {
     return x >= 0 && y >= 0 && x < grid.size() && y < grid[0].size() && grid[x][y] == 0;
 }
 
+//reference: astar function from chatgpt
 vector<pair<int, int>> aStar(vector<vector<int>>& grid, pair<int, int> start, pair<int, int> goal) {
     priority_queue<Node> openSet;
     unordered_map<int, int> cameFrom;

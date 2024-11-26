@@ -6,6 +6,7 @@ def manhattan(x1, y1, x2, y2):
 def is_valid(x, y, grid):
     return 0 <= x < len(grid) and 0 <= y < len(grid[0]) and grid[x][y] == 0
 
+#reference: astar function from chatgpt
 def a_star(grid, start, goal):
     open_set = []
     heapq.heappush(open_set, (0, start, 0, None))

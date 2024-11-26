@@ -28,6 +28,7 @@ public class AStar {
         return x >= 0 && y >= 0 && x < grid.length && y < grid[0].length && grid[x][y] == 0;
     }
 
+    //reference: astar function from chatgpt
     public static List<int[]> aStar(int[][] grid, int[] start, int[] goal) {
         PriorityQueue<Node> openSet = new PriorityQueue<>();
         boolean[][] visited = new boolean[grid.length][grid[0].length];

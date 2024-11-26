@@ -24,6 +24,7 @@ void reconstructPath(Node* current) {
     printf("(%d, %d) ", current->x, current->y);
 }
 
+//reference: astar function from chatgpt
 void aStar(int grid[GRID_SIZE][GRID_SIZE], int start[2], int goal[2]) {
     Node* openSet[GRID_SIZE * GRID_SIZE];
     int openSetSize = 0;

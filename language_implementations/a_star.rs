@@ -41,6 +41,7 @@ fn reconstruct_path(mut current: &Node) -> Vec<(usize, usize)> {
     path
 }
 
+//reference: astar function from chatgpt
 fn a_star(grid: &mut Vec<Vec<i32>>, start: (usize, usize), goal: (usize, usize)) -> Vec<(usize, usize)> {
     let mut open_set = BinaryHeap::new();
     open_set.push(Node {
