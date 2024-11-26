@@ -1,38 +1,35 @@
 //reference: entire A* alg from geeksforgeeks (https://www.geeksforgeeks.org/a-search-algorithm/)
-#include <bits/stdc++.h>
-using namespace std;
 
-#define ROW 9
-#define COL 10
+let ROW = 9;
+let COL = 10;
 
-// Creating a shortcut for int, int pair type
-typedef pair<int, int> Pair;
-
-// Creating a shortcut for pair<int, pair<int, int>> type
-typedef pair<double, pair<int, int> > pPair;
+// typedef pair<double, pair<int, int> > pPair;
 
 // A structure to hold the necessary parameters
-struct cell {
+class cell {
     // Row and Column index of its parent
     // Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
-    int parent_i, parent_j;
-    // f = g + h
-    double f, g, h;
-};
+    constructor(){
+        this.parent_i = 0;
+        this.parent_j = 0;
+        this.f = 0;
+        this.g = 0;
+        this.h = 0;
+    }
+}
 
 // A Utility Function to check whether given cell (row, col)
 // is a valid cell or not.
-bool isValid(int row, int col)
+function isValid(row, col)
 {
     // Returns true if row number and column number
     // is in range
-    return (row >= 0) && (row < ROW) && (col >= 0)
-           && (col < COL);
+    return (row >= 0) && (row < ROW) && (col >= 0) && (col < COL);
 }
 
 // A Utility Function to check whether the given cell is
 // blocked or not
-bool isUnBlocked(int grid[][COL], int row, int col)
+function isUnBlocked(grid, row, col)
 {
     // Returns true if the cell is not blocked else false
     if (grid[row][col] == 1)
@@ -43,47 +40,49 @@ bool isUnBlocked(int grid[][COL], int row, int col)
 
 // A Utility Function to check whether destination cell has
 // been reached or not
-bool isDestination(int row, int col, Pair dest)
+function isDestination(row, col, dest)
 {
-    if (row == dest.first && col == dest.second)
+    if (row == dest[0] && col == dest[1])
         return (true);
     else
         return (false);
 }
 
 // A Utility Function to calculate the 'h' heuristics.
-double calculateHValue(int row, int col, Pair dest)
+function calculateHValue(row, col, dest)
 {
     // Return using the distance formula
-    return ((double)sqrt(
-        (row - dest.first) * (row - dest.first)
-        + (col - dest.second) * (col - dest.second)));
+    return (Math.sqrt((row - dest[0]) * (row - dest[0]) + (col - dest[1]) * (col - dest[1])));
 }
 
 // A Utility Function to trace the path from the source
 // to destination
-void tracePath(cell cellDetails[][COL], Pair dest)
+function tracePath(cellDetails, dest)
 {
-    printf("\nThe Path is ");
-    int row = dest.first;
-    int col = dest.second;
+    console.log("The Path is ");
+    let row = dest[0];
+    let col = dest[1];
 
-    stack<Pair> Path;
+    // stack<Pair> Path;
+    let Path = [];
 
-    while (!(cellDetails[row][col].parent_i == row
-             && cellDetails[row][col].parent_j == col)) {
-        Path.push(make_pair(row, col));
-        int temp_row = cellDetails[row][col].parent_i;
-        int temp_col = cellDetails[row][col].parent_j;
+    while (!(cellDetails[row][col].parent_i == row && cellDetails[row][col].parent_j == col)) {
+        Path.push([row, col]);
+        let temp_row = cellDetails[row][col].parent_i;
+        let temp_col = cellDetails[row][col].parent_j;
         row = temp_row;
         col = temp_col;
     }
 
-    Path.push(make_pair(row, col));
-    while (!Path.empty()) {
-        pair<int, int> p = Path.top();
-        Path.pop();
-        printf("-> (%d,%d) ", p.first, p.second);
+    Path.push([row, col]);
+    while (Path.length > 0) {
+        let p = Path[0];
+        Path.shift();
+        
+        if(p[0] == 2 || p[0] == 1){
+            console.log("-> (" + p[0] + ", " + (p[1] - 1) + ")");
+        }
+        else console.log("-> (" + p[0] + ", " + p[1] + ")");
     }
 
     return;
@@ -92,62 +91,68 @@ void tracePath(cell cellDetails[][COL], Pair dest)
 // A Function to find the shortest path between
 // a given source cell to a destination cell according
 // to A* Search Algorithm
-void aStarSearch(int grid[][COL], Pair src, Pair dest)
+function aStarSearch(grid, src, dest)
 {
     // If the source is out of range
-    if (isValid(src.first, src.second) == false) {
-        printf("Source is invalid\n");
+    if (isValid(src[0], src[1]) == false) {
+        console.log("Source is invalid\n");
         return;
     }
 
     // If the destination is out of range
-    if (isValid(dest.first, dest.second) == false) {
-        printf("Destination is invalid\n");
+    if (isValid(dest[0], dest[1]) == false) {
+        console.log("Destination is invalid\n");
         return;
     }
 
     // Either the source or the destination is blocked
-    if (isUnBlocked(grid, src.first, src.second) == false
-        || isUnBlocked(grid, dest.first, dest.second)
+    if (isUnBlocked(grid, src[0], src[1]) == false
+        || isUnBlocked(grid, dest[0], dest[1])
                == false) {
-        printf("Source or the destination is blocked\n");
+        console.log("Source or the destination is blocked\n");
         return;
     }
 
     // If the destination cell is the same as source cell
-    if (isDestination(src.first, src.second, dest)
+    if (isDestination(src[0], src[1], dest)
         == true) {
-        printf("We are already at the destination\n");
+        console.log("We are already at the destination\n");
         return;
     }
 
     // Create a closed list and initialise it to false which
     // means that no cell has been included yet This closed
     // list is implemented as a boolean 2D array
-    bool closedList[ROW][COL];
-    memset(closedList, false, sizeof(closedList));
+    let closedList = new Array(ROW);
+    for(let i = 0; i < ROW; i++){
+        closedList[i] = new Array(COL).fill(false);
+    }
 
     // Declare a 2D array of structure to hold the details
     // of that cell
-    cell cellDetails[ROW][COL];
+    let cellDetails = new Array(ROW);
+    for(let i = 0; i < ROW; i++){
+        cellDetails[i] = new Array(COL);
+    }
 
-    int i, j;
+    let i, j;
 
     for (i = 0; i < ROW; i++) {
         for (j = 0; j < COL; j++) {
-            cellDetails[i][j].f = FLT_MAX;
-            cellDetails[i][j].g = FLT_MAX;
-            cellDetails[i][j].h = FLT_MAX;
+            cellDetails[i][j] = new cell();
+            cellDetails[i][j].f = 2147483647;
+            cellDetails[i][j].g = 2147483647;
+            cellDetails[i][j].h = 2147483647;
             cellDetails[i][j].parent_i = -1;
             cellDetails[i][j].parent_j = -1;
         }
     }
 
     // Initialising the parameters of the starting node
-    i = src.first, j = src.second;
-    cellDetails[i][j].f = 0.0;
-    cellDetails[i][j].g = 0.0;
-    cellDetails[i][j].h = 0.0;
+    i = src[0], j = src[1];
+    cellDetails[i][j].f = 0;
+    cellDetails[i][j].g = 0;
+    cellDetails[i][j].h = 0;
     cellDetails[i][j].parent_i = i;
     cellDetails[i][j].parent_j = j;
 
@@ -159,29 +164,50 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
      Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
      This open list is implemented as a set of pair of
      pair.*/
-    set<pPair> openList;
+    let openList = new Map();
 
     // Put the starting cell on the open list and set its
     // 'f' as 0
-    openList.insert(make_pair(0.0, make_pair(i, j)));
+    openList.set(0, [i, j]);
 
     // We set this boolean value as false as initially
     // the destination is not reached.
-    bool foundDest = false;
+    let foundDest = false;
 
-    while (!openList.empty()) {
-        pPair p = *openList.begin();
+    while (openList.size > 0) {
+        let p = openList.entries().next().value
 
         // Remove this vertex from the open list
-        openList.erase(openList.begin());
+        openList.delete(p[0]);
 
         // Add this vertex to the closed list
-        i = p.second.first;
-        j = p.second.second;
+        i = p[1][0];
+        j = p[1][1];
         closedList[i][j] = true;
 
+        /*
+         Generating all the 8 successor of this cell
+
+             N.W   N   N.E
+               \   |   /
+                \  |  /
+             W----Cell----E
+                  / | \
+                /   |  \
+             S.W    S   S.E
+
+         Cell-->Popped Cell (i, j)
+         N -->  North       (i-1, j)
+         S -->  South       (i+1, j)
+         E -->  East        (i, j+1)
+         W -->  West           (i, j-1)
+         N.E--> North-East  (i-1, j+1)
+         N.W--> North-West  (i-1, j-1)
+         S.E--> South-East  (i+1, j+1)
+         S.W--> South-West  (i+1, j-1)*/
+
         // To store the 'g', 'h' and 'f' of the 8 successors
-        double gNew, hNew, fNew;
+        let gNew, hNew, fNew;
 
         //----------- 1st Successor (North) ------------
 
@@ -193,7 +219,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                 // Set the Parent of the destination cell
                 cellDetails[i - 1][j].parent_i = i;
                 cellDetails[i - 1][j].parent_j = j;
-                printf("The destination cell is found\n");
+                console.log("The destination cell is found\n");
                 tracePath(cellDetails, dest);
                 foundDest = true;
                 return;
@@ -204,7 +230,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
             else if (closedList[i - 1][j] == false
                      && isUnBlocked(grid, i - 1, j)
                             == true) {
-                gNew = cellDetails[i][j].g + 1.0;
+                gNew = cellDetails[i][j].g + 1;
                 hNew = calculateHValue(i - 1, j, dest);
                 fNew = gNew + hNew;
 
@@ -216,10 +242,9 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                 // If it is on the open list already, check
                 // to see if this path to that square is
                 // better, using 'f' cost as the measure.
-                if (cellDetails[i - 1][j].f == FLT_MAX
+                if (cellDetails[i - 1][j].f == 2147483647
                     || cellDetails[i - 1][j].f > fNew) {
-                    openList.insert(make_pair(
-                        fNew, make_pair(i - 1, j)));
+                    openList.set(fNew, [i - 1, j]);
 
                     // Update the details of this cell
                     cellDetails[i - 1][j].f = fNew;
@@ -241,7 +266,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                 // Set the Parent of the destination cell
                 cellDetails[i + 1][j].parent_i = i;
                 cellDetails[i + 1][j].parent_j = j;
-                printf("The destination cell is found\n");
+                console.log("The destination cell is found\n");
                 tracePath(cellDetails, dest);
                 foundDest = true;
                 return;
@@ -252,7 +277,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
             else if (closedList[i + 1][j] == false
                      && isUnBlocked(grid, i + 1, j)
                             == true) {
-                gNew = cellDetails[i][j].g + 1.0;
+                gNew = cellDetails[i][j].g + 1;
                 hNew = calculateHValue(i + 1, j, dest);
                 fNew = gNew + hNew;
 
@@ -264,10 +289,9 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                 // If it is on the open list already, check
                 // to see if this path to that square is
                 // better, using 'f' cost as the measure.
-                if (cellDetails[i + 1][j].f == FLT_MAX
+                if (cellDetails[i + 1][j].f == 2147483647
                     || cellDetails[i + 1][j].f > fNew) {
-                    openList.insert(make_pair(
-                        fNew, make_pair(i + 1, j)));
+                    openList.set(fNew, [i + 1, j]);
                     // Update the details of this cell
                     cellDetails[i + 1][j].f = fNew;
                     cellDetails[i + 1][j].g = gNew;
@@ -288,7 +312,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                 // Set the Parent of the destination cell
                 cellDetails[i][j + 1].parent_i = i;
                 cellDetails[i][j + 1].parent_j = j;
-                printf("The destination cell is found\n");
+                console.log("The destination cell is found\n");
                 tracePath(cellDetails, dest);
                 foundDest = true;
                 return;
@@ -300,7 +324,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
             else if (closedList[i][j + 1] == false
                      && isUnBlocked(grid, i, j + 1)
                             == true) {
-                gNew = cellDetails[i][j].g + 1.0;
+                gNew = cellDetails[i][j].g + 1;
                 hNew = calculateHValue(i, j + 1, dest);
                 fNew = gNew + hNew;
 
@@ -312,10 +336,9 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                 // If it is on the open list already, check
                 // to see if this path to that square is
                 // better, using 'f' cost as the measure.
-                if (cellDetails[i][j + 1].f == FLT_MAX
+                if (cellDetails[i][j + 1].f == 2147483647
                     || cellDetails[i][j + 1].f > fNew) {
-                    openList.insert(make_pair(
-                        fNew, make_pair(i, j + 1)));
+                    openList.set(fNew, [i, j + 1]);
 
                     // Update the details of this cell
                     cellDetails[i][j + 1].f = fNew;
@@ -337,7 +360,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                 // Set the Parent of the destination cell
                 cellDetails[i][j - 1].parent_i = i;
                 cellDetails[i][j - 1].parent_j = j;
-                printf("The destination cell is found\n");
+                console.log("The destination cell is found\n");
                 tracePath(cellDetails, dest);
                 foundDest = true;
                 return;
@@ -349,7 +372,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
             else if (closedList[i][j - 1] == false
                      && isUnBlocked(grid, i, j - 1)
                             == true) {
-                gNew = cellDetails[i][j].g + 1.0;
+                gNew = cellDetails[i][j].g + 1;
                 hNew = calculateHValue(i, j - 1, dest);
                 fNew = gNew + hNew;
 
@@ -361,10 +384,9 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                 // If it is on the open list already, check
                 // to see if this path to that square is
                 // better, using 'f' cost as the measure.
-                if (cellDetails[i][j - 1].f == FLT_MAX
+                if (cellDetails[i][j - 1].f == 2147483647
                     || cellDetails[i][j - 1].f > fNew) {
-                    openList.insert(make_pair(
-                        fNew, make_pair(i, j - 1)));
+                    openList.set(fNew, [i, j - 1]);
 
                     // Update the details of this cell
                     cellDetails[i][j - 1].f = fNew;
@@ -376,13 +398,16 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
             }
         }
     }
+
+    // When the destination cell is not found and the open
+    // list is empty, then we conclude that we failed to
+    // reach the destination cell. This may happen when the
+    // there is no way to destination cell (due to
+    // blockages)
     if (foundDest == false)
-        printf("Failed to find the Destination Cell\n");
+        console.log("Failed to find the Destination Cell\n");
 
     return;
 }
 
-int main()
-{
-    return (0);
-}
+

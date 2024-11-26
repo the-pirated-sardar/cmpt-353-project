@@ -1,84 +1,300 @@
-import java.util.*;
+//reference: entire A* alg from geeksforgeeks (https://www.geeksforgeeks.org/a-search-algorithm/)
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-class Node implements Comparable<Node> {
-    int x, y, g, h;
-    Node parent;
+class Cell {
+    int parent_i, parent_j;
+    double f, g, h;
 
-    public Node(int x, int y, int g, int h, Node parent) {
-        this.x = x;
-        this.y = y;
-        this.g = g;
-        this.h = h;
-        this.parent = parent;
-    }
-
-    @Override
-    public int compareTo(Node other) {
-        return (this.g + this.h) - (other.g + other.h);
+    Cell()
+    {
+        this.parent_i = 0;
+        this.parent_j = 0;
+        this.f = 0;
+        this.g = 0;
+        this.h = 0;
     }
 }
 
-public class AStar {
+public class AStarSearch {
 
-    private static int manhattan(int x1, int y1, int x2, int y2) {
-        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    private static final int ROW = 9;
+    private static final int COL = 10;
+
+    public static void main(String[] args)
+    {
+        
     }
 
-    private static boolean isValid(int x, int y, int[][] grid) {
-        return x >= 0 && y >= 0 && x < grid.length && y < grid[0].length && grid[x][y] == 0;
+    private static boolean isValid(int row, int col)
+    {
+        return (row >= 0) && (row < ROW) && (col >= 0)
+            && (col < COL);
     }
 
-    //reference: astar function from chatgpt
-    public static List<int[]> aStar(int[][] grid, int[] start, int[] goal) {
-        PriorityQueue<Node> openSet = new PriorityQueue<>();
-        boolean[][] visited = new boolean[grid.length][grid[0].length];
+    private static boolean isUnBlocked(int[][] grid,
+                                       int row, int col)
+    {
+        return grid[row][col] == 1;
+    }
 
-        openSet.add(new Node(start[0], start[1], 0, manhattan(start[0], start[1], goal[0], goal[1]), null));
+    private static boolean isDestination(int row, int col,
+                                         int[] dest)
+    {
+        return row == dest[0] && col == dest[1];
+    }
 
-        while (!openSet.isEmpty()) {
-            Node current = openSet.poll();
+    private static double calculateHValue(int row, int col,
+                                          int[] dest)
+    {
+        return Math.sqrt((row - dest[0]) * (row - dest[0])
+                         + (col - dest[1])
+                               * (col - dest[1]));
+    }
 
-            if (current.x == goal[0] && current.y == goal[1]) {
-                List<int[]> path = new ArrayList<>();
-                while (current != null) {
-                    path.add(new int[]{current.x, current.y});
-                    current = current.parent;
+    private static void tracePath(Cell[][] cellDetails,
+                                  int[] dest)
+    {
+        System.out.println("The Path is ");
+        int row = dest[0];
+        int col = dest[1];
+
+        Map<int[], Boolean> path = new LinkedHashMap<>();
+
+        while (
+            !(cellDetails[row][col].parent_i == row
+              && cellDetails[row][col].parent_j == col)) {
+            path.put(new int[] { row, col }, true);
+            int temp_row = cellDetails[row][col].parent_i;
+            int temp_col = cellDetails[row][col].parent_j;
+            row = temp_row;
+            col = temp_col;
+        }
+
+        path.put(new int[] { row, col }, true);
+        List<int[]> pathList
+            = new ArrayList<>(path.keySet());
+        Collections.reverse(pathList);
+
+        pathList.forEach(p -> {
+            if (p[0] == 2 || p[0] == 1) {
+                System.out.print("-> (" + p[0] + ", "
+                                 + (p[1]) + ")");
+            }
+            else {
+                System.out.print("-> (" + p[0] + ", " + p[1]
+                                 + ")");
+            }
+        });
+        System.out.println();
+    }
+
+    private static void aStarSearch(int[][] grid, int[] src,
+                                    int[] dest)
+    {
+        if (!isValid(src[0], src[1])
+            || !isValid(dest[0], dest[1])) {
+            System.out.println(
+                "Source or destination is invalid");
+            return;
+        }
+
+        if (!isUnBlocked(grid, src[0], src[1])
+            || !isUnBlocked(grid, dest[0], dest[1])) {
+            System.out.println(
+                "Source or the destination is blocked");
+            return;
+        }
+
+        if (isDestination(src[0], src[1], dest)) {
+            System.out.println(
+                "We are already at the destination");
+            return;
+        }
+
+        boolean[][] closedList = new boolean[ROW][COL];
+        Cell[][] cellDetails = new Cell[ROW][COL];
+
+        for (int i = 0; i < ROW; i++) {
+            for (int j = 0; j < COL; j++) {
+                cellDetails[i][j] = new Cell();
+                cellDetails[i][j].f
+                    = Double.POSITIVE_INFINITY;
+                cellDetails[i][j].g
+                    = Double.POSITIVE_INFINITY;
+                cellDetails[i][j].h
+                    = Double.POSITIVE_INFINITY;
+                cellDetails[i][j].parent_i = -1;
+                cellDetails[i][j].parent_j = -1;
+            }
+        }
+
+        int i = src[0], j = src[1];
+        cellDetails[i][j].f = 0;
+        cellDetails[i][j].g = 0;
+        cellDetails[i][j].h = 0;
+        cellDetails[i][j].parent_i = i;
+        cellDetails[i][j].parent_j = j;
+
+        Map<Double, int[]> openList = new HashMap<>();
+        openList.put(0.0, new int[] { i, j });
+
+        boolean foundDest = false;
+
+        while (!openList.isEmpty()) {
+            Map.Entry<Double, int[]> p
+                = openList.entrySet().iterator().next();
+            for (Map.Entry<Double, int[]> q :
+                 openList.entrySet()) {
+                if (q.getKey() < p.getKey()) {
+                    p = q;
                 }
-                Collections.reverse(path);
-                return path;
             }
 
-            if (visited[current.x][current.y]) continue;
-            visited[current.x][current.y] = true;
+            openList.remove(p.getKey());
 
-            int[][] neighbors = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-            for (int[] neighbor : neighbors) {
-                int nx = current.x + neighbor[0];
-                int ny = current.y + neighbor[1];
+            i = p.getValue()[0];
+            j = p.getValue()[1];
+            closedList[i][j] = true;
 
-                if (isValid(nx, ny, grid)) {
-                    openSet.add(new Node(nx, ny, current.g + 1, manhattan(nx, ny, goal[0], goal[1]), current));
-                    grid[nx][ny] = 1; // Mark visited
+            double gNew, hNew, fNew;
+
+            // 1st Successor (North)
+            if (isValid(i - 1, j)) {
+                if (isDestination(i - 1, j, dest)) {
+                    cellDetails[i - 1][j].parent_i = i;
+                    cellDetails[i - 1][j].parent_j = j;
+                    System.out.println(
+                        "The destination cell is found");
+                    tracePath(cellDetails, dest);
+                    foundDest = true;
+                    return;
+                }
+                else if (!closedList[i - 1][j]
+                         && isUnBlocked(grid, i - 1, j)) {
+                    gNew = cellDetails[i][j].g + 1;
+                    hNew = calculateHValue(i - 1, j, dest);
+                    fNew = gNew + hNew;
+
+                    if (cellDetails[i - 1][j].f
+                            == Double.POSITIVE_INFINITY
+
+                        || cellDetails[i - 1][j].f > fNew) {
+                        openList.put(
+                            fNew, new int[] { i - 1, j });
+
+                        cellDetails[i - 1][j].f = fNew;
+                        cellDetails[i - 1][j].g = gNew;
+                        cellDetails[i - 1][j].h = hNew;
+                        cellDetails[i - 1][j].parent_i = i;
+                        cellDetails[i - 1][j].parent_j = j;
+                    }
+                }
+            }
+
+            // 2nd Successor (South)
+            if (isValid(i + 1, j)) {
+                if (isDestination(i + 1, j, dest)) {
+                    cellDetails[i + 1][j].parent_i = i;
+                    cellDetails[i + 1][j].parent_j = j;
+                    System.out.println(
+                        "The destination cell is found");
+                    tracePath(cellDetails, dest);
+                    foundDest = true;
+                    return;
+                }
+                else if (!closedList[i + 1][j]
+                         && isUnBlocked(grid, i + 1, j)) {
+                    gNew = cellDetails[i][j].g + 1;
+                    hNew = calculateHValue(i + 1, j, dest);
+                    fNew = gNew + hNew;
+
+                    if (cellDetails[i + 1][j].f
+                            == Double.POSITIVE_INFINITY
+                        || cellDetails[i + 1][j].f > fNew) {
+                        openList.put(
+                            fNew, new int[] { i + 1, j });
+
+                        cellDetails[i + 1][j].f = fNew;
+                        cellDetails[i + 1][j].g = gNew;
+                        cellDetails[i + 1][j].h = hNew;
+                        cellDetails[i + 1][j].parent_i = i;
+                        cellDetails[i + 1][j].parent_j = j;
+                    }
+                }
+            }
+
+            // 3rd Successor (East)
+            if (isValid(i, j + 1)) {
+                if (isDestination(i, j + 1, dest)) {
+                    cellDetails[i][j + 1].parent_i = i;
+                    cellDetails[i][j + 1].parent_j = j;
+                    System.out.println(
+                        "The destination cell is found");
+                    tracePath(cellDetails, dest);
+                    foundDest = true;
+                    return;
+                }
+                else if (!closedList[i][j + 1]
+                         && isUnBlocked(grid, i, j + 1)) {
+                    gNew = cellDetails[i][j].g + 1;
+                    hNew = calculateHValue(i, j + 1, dest);
+                    fNew = gNew + hNew;
+
+                    if (cellDetails[i][j + 1].f
+                            == Double.POSITIVE_INFINITY
+                        || cellDetails[i][j + 1].f > fNew) {
+                        openList.put(
+                            fNew, new int[] { i, j + 1 });
+
+                        cellDetails[i][j + 1].f = fNew;
+                        cellDetails[i][j + 1].g = gNew;
+                        cellDetails[i][j + 1].h = hNew;
+                        cellDetails[i][j + 1].parent_i = i;
+                        cellDetails[i][j + 1].parent_j = j;
+                    }
+                }
+            }
+
+            // 4th Successor (West)
+            if (isValid(i, j - 1)) {
+                if (isDestination(i, j - 1, dest)) {
+                    cellDetails[i][j - 1].parent_i = i;
+                    cellDetails[i][j - 1].parent_j = j;
+                    System.out.println(
+                        "The destination cell is found");
+                    tracePath(cellDetails, dest);
+                    foundDest = true;
+                    return;
+                }
+                else if (!closedList[i][j - 1]
+                         && isUnBlocked(grid, i, j - 1)) {
+                    gNew = cellDetails[i][j].g + 1;
+                    hNew = calculateHValue(i, j - 1, dest);
+                    fNew = gNew + hNew;
+
+                    if (cellDetails[i][j - 1].f
+                            == Double.POSITIVE_INFINITY
+                        || cellDetails[i][j - 1].f > fNew) {
+                        openList.put(
+                            fNew, new int[] { i, j - 1 });
+
+                        cellDetails[i][j - 1].f = fNew;
+                        cellDetails[i][j - 1].g = gNew;
+                        cellDetails[i][j - 1].h = hNew;
+                        cellDetails[i][j - 1].parent_i = i;
+                        cellDetails[i][j - 1].parent_j = j;
+                    }
                 }
             }
         }
-        return new ArrayList<>(); // No path found
-    }
 
-    public static void main(String[] args) {
-        int[][] grid = {
-            {0, 0, 0, 0, 0},
-            {0, 1, 1, 1, 0},
-            {0, 0, 0, 0, 0},
-            {0, 1, 1, 1, 0},
-            {0, 0, 0, 0, 0}};
-        int[] start = {0, 0};
-        int[] goal = {4, 4};
-
-        List<int[]> path = aStar(grid, start, goal);
-
-        for (int[] p : path) {
-            System.out.println("(" + p[0] + ", " + p[1] + ")");
-        }
+        if (!foundDest)
+            System.out.println(
+                "Failed to find the destination cell");
     }
 }
