@@ -1,0 +1,9 @@
+{
+    "python.analysis.extraPaths": [
+        "./data_gathering/language_implementations"
+    ],
+    "files.associations": {
+        "ostream": "cpp",
+        "iostream": "cpp"
+    }
+}
