@@ -55,6 +55,11 @@ function calculateHValue(row, col, dest)
     // Return using the distance formula
     return (Math.sqrt((row - dest[0]) * (row - dest[0]) + (col - dest[1]) * (col - dest[1])));
 }
+function calculateHValue1(row, col, dest) {
+    // Return using the Manhattan distance formula
+    return Math.abs(row - dest[0]) + Math.abs(col - dest[1]);
+}
+
 
 // A Utility Function to trace the path from the source
 // to destination
@@ -120,7 +125,7 @@ function loadMap(filename) {
 
 
 // A* Search starter function
-function AStarSearchStarter(mapFile, start, goal) {
+function AStarSearchStarter(mapFile, start, goal,heuristic) {
     //console.log("Loading map...");
     const grid = loadMap(mapFile);  // Load the grid from the map file
     
@@ -130,7 +135,7 @@ function AStarSearchStarter(mapFile, start, goal) {
     }
 
     //console.log("Starting A* search...");
-    const path = aStarSearch(grid, start, goal);
+    const path = aStarSearch(grid, start, goal,heuristic);
 
     if (path) {
         //console.log("JSPath found:", path);
@@ -143,7 +148,7 @@ function AStarSearchStarter(mapFile, start, goal) {
 // A Function to find the shortest path between
 // a given source cell to a destination cell according
 // to A* Search Algorithm
-function aStarSearch(grid, src, dest)
+function aStarSearch(grid, src, dest, heuristic)
 {
     // If the source is out of range
     if (isValid(src[0], src[1]) == false) {
@@ -283,7 +288,12 @@ function aStarSearch(grid, src, dest)
                      && isUnBlocked(grid, i - 1, j)
                             == true) {
                 gNew = cellDetails[i][j].g + 1;
-                hNew = calculateHValue(i - 1, j, dest);
+                if(heuristic == 0){
+                    hNew = calculateHValue(i - 1, j, dest);
+                }
+                else{
+                    hNew = calculateHValue1(i - 1, j, dest);
+                }                
                 fNew = gNew + hNew;
 
                 // If it isn’t on the open list, add it to
@@ -330,7 +340,12 @@ function aStarSearch(grid, src, dest)
                      && isUnBlocked(grid, i + 1, j)
                             == true) {
                 gNew = cellDetails[i][j].g + 1;
-                hNew = calculateHValue(i + 1, j, dest);
+                if(heuristic == 0){
+                    hNew = calculateHValue(i - 1, j, dest);
+                }
+                else{
+                    hNew = calculateHValue1(i - 1, j, dest);
+                }  
                 fNew = gNew + hNew;
 
                 // If it isn’t on the open list, add it to
@@ -377,7 +392,12 @@ function aStarSearch(grid, src, dest)
                      && isUnBlocked(grid, i, j + 1)
                             == true) {
                 gNew = cellDetails[i][j].g + 1;
-                hNew = calculateHValue(i, j + 1, dest);
+                if(heuristic == 0){
+                    hNew = calculateHValue(i - 1, j, dest);
+                }
+                else{
+                    hNew = calculateHValue1(i - 1, j, dest);
+                }  
                 fNew = gNew + hNew;
 
                 // If it isn’t on the open list, add it to
@@ -425,7 +445,12 @@ function aStarSearch(grid, src, dest)
                      && isUnBlocked(grid, i, j - 1)
                             == true) {
                 gNew = cellDetails[i][j].g + 1;
-                hNew = calculateHValue(i, j - 1, dest);
+                if(heuristic == 0){
+                    hNew = calculateHValue(i - 1, j, dest);
+                }
+                else{
+                    hNew = calculateHValue1(i - 1, j, dest);
+                }  
                 fNew = gNew + hNew;
 
                 // If it isn’t on the open list, add it to
@@ -466,7 +491,8 @@ const args = process.argv.slice(2); // Skip the first two arguments (node and sc
 const mapFile = args[0];
 const start = [parseInt(args[1]), parseInt(args[2])];
 const goal = [parseInt(args[3]), parseInt(args[4])];
+const heurstic = args[5];
 
 
 // Call AStarSearch with the passed arguments
-AStarSearchStarter(mapFile, start, goal);
+AStarSearchStarter(mapFile, start, goal, heurstic);

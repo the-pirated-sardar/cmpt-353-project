@@ -70,10 +70,10 @@ def compile_executables():
     return executables
 
 
-def run_astar_python(grid, start, goal):
+def run_astar_python(grid, start, goal, heuristic):
     process = psutil.Process()
     start_time = time.time()
-    a_star.aStarSearch(grid, start, goal)  # Run the search
+    a_star.aStarSearch(grid, start, goal, heuristic)  # Run the search
     end_time = time.time()
     cpu_usage = process.cpu_percent(interval=None)
     return {
@@ -81,15 +81,15 @@ def run_astar_python(grid, start, goal):
     }
 
 
-def run_astar_executable(executable, lang, map_file, start, goal):
+def run_astar_executable(executable, lang, map_file, start, goal, heuristic):
     if lang == "Java":
-        command = ["java", "-cp", "language_implementations", executable, "Java", map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1])]
+        command = ["java", "-cp", "language_implementations", executable, "Java", map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
     elif lang == "C++":
-        command = [executable, "C++", map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1])]
+        command = [executable, "C++", map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
     elif lang == "JavaScript":
-        command = ["node", os.path.join("language_implementations", "a_star.js"), map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1])]
+        command = ["node", os.path.join("language_implementations", "a_star.js"), map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
     else:
-        command = [executable, map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1])]
+        command = [executable, map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
 
     # Track execution time and CPU usage
     process = psutil.Process()
@@ -144,14 +144,30 @@ def benchmark_languages(map_file, scen_file):
 
         for lang, executable in executables.items():
             if lang == "Python":
-                result = run_astar_python(grid, start, goal)
+                result = run_astar_python(grid, start, goal, 0)
             else:
-                result = run_astar_executable(executable, lang, map_file, start, goal)
+                result = run_astar_executable(executable, lang, map_file, start, goal, 0)
 
             if result is not None:
                 result.update({
                     "language": lang,
-                    "instance_num": instance_num  # Add the instance number
+                    "instance_num": instance_num,
+                    "heuristic": 0
+                })
+                results.append(result)
+            else:
+                print(f"Warning: No valid result for language {lang}, skipping.")
+
+            if lang == "Python":
+                result = run_astar_python(grid, start, goal, 1)
+            else:
+                result = run_astar_executable(executable, lang, map_file, start, goal, 1)
+
+            if result is not None:
+                result.update({
+                    "language": lang,
+                    "instance_num": instance_num,
+                    "heuristic": 1
                 })
                 results.append(result)
             else:

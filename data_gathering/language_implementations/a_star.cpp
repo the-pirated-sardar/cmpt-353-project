@@ -59,6 +59,15 @@ double calculateHValue(int row, int col, Pair dest)
         (row - dest.first) * (row - dest.first)
         + (col - dest.second) * (col - dest.second)));
 }
+// A Utility Function to calculate the 'h' heuristics.
+double calculateHValue1(int row, int col, Pair dest)
+{
+    // Return using the distance formula
+   return (double)(
+    abs(row - dest.first) + abs(col - dest.second));
+
+}
+
 
 // A Utility Function to trace the path from the source
 // to destination
@@ -95,7 +104,7 @@ void tracePath(cell cellDetails[][COL], Pair dest)
 // A Function to find the shortest path between
 // a given source cell to a destination cell according
 // to A* Search Algorithm
-void aStarSearch(int grid[][COL], Pair src, Pair dest)
+void aStarSearch(int grid[][COL], Pair src, Pair dest, int heuristic)
 {
     // If the source is out of range
     if (isValid(src.first, src.second) == false) {
@@ -208,7 +217,12 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                      && isUnBlocked(grid, i - 1, j)
                             == true) {
                 gNew = cellDetails[i][j].g + 1.0;
-                hNew = calculateHValue(i - 1, j, dest);
+                if(heuristic == 0){
+                    hNew = calculateHValue(i - 1, j, dest);
+                }
+                else{
+                    hNew = calculateHValue1(i - 1, j, dest);
+                }
                 fNew = gNew + hNew;
 
                 // If it isn’t on the open list, add it to
@@ -256,7 +270,12 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                      && isUnBlocked(grid, i + 1, j)
                             == true) {
                 gNew = cellDetails[i][j].g + 1.0;
-                hNew = calculateHValue(i + 1, j, dest);
+                if(heuristic == 0){
+                    hNew = calculateHValue(i - 1, j, dest);
+                }
+                else{
+                    hNew = calculateHValue1(i - 1, j, dest);
+                }
                 fNew = gNew + hNew;
 
                 // If it isn’t on the open list, add it to
@@ -304,7 +323,12 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                      && isUnBlocked(grid, i, j + 1)
                             == true) {
                 gNew = cellDetails[i][j].g + 1.0;
-                hNew = calculateHValue(i, j + 1, dest);
+                if(heuristic == 0){
+                    hNew = calculateHValue(i - 1, j, dest);
+                }
+                else{
+                    hNew = calculateHValue1(i - 1, j, dest);
+                }
                 fNew = gNew + hNew;
 
                 // If it isn’t on the open list, add it to
@@ -353,7 +377,12 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
                      && isUnBlocked(grid, i, j - 1)
                             == true) {
                 gNew = cellDetails[i][j].g + 1.0;
-                hNew = calculateHValue(i, j - 1, dest);
+                if(heuristic == 0){
+                    hNew = calculateHValue(i - 1, j, dest);
+                }
+                else{
+                    hNew = calculateHValue1(i - 1, j, dest);
+                }
                 fNew = gNew + hNew;
 
                 // If it isn’t on the open list, add it to
@@ -409,7 +438,7 @@ void load_map(const string& filename, int grid[][COL]) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 7) {
+    if (argc != 8) {
         cerr << "Usage: " << argv[0] << " <lang> <map_file> <start_x> <start_y> <goal_x> <goal_y>" << endl;
         return 1;
     }
@@ -421,6 +450,7 @@ int main(int argc, char* argv[]) {
     int start_y = stoi(argv[4]);
     int goal_x = stoi(argv[5]);
     int goal_y = stoi(argv[6]);
+    int heuristic = stoi(argv[7]);
 
     // Load the map from the file
     int grid[64][COL];
@@ -429,7 +459,7 @@ int main(int argc, char* argv[]) {
     // Run the A* algorithm
     Pair src = make_pair(start_x, start_y);
     Pair dest = make_pair(goal_x, goal_y);
-    aStarSearch(grid, src, dest);
+    aStarSearch(grid, src, dest, heuristic);
 
     return 0;
 }

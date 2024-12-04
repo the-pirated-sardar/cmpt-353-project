@@ -30,7 +30,7 @@ public class a_star {
 
     public static void main(String[] args)
     {
-        if (args.length != 6) {
+        if (args.length != 7) {
             System.err.println("Usage: java AStar <lang> <map_file> <start_x> <start_y> <goal_x> <goal_y>");
             return;
         }
@@ -42,6 +42,7 @@ public class a_star {
         int startY = Integer.parseInt(args[3]);
         int goalX = Integer.parseInt(args[4]);
         int goalY = Integer.parseInt(args[5]);
+        int heuristic = Integer.parseInt(args[6]);
 
         // Define the grid
         int[][] grid = new int[ROW][COL]; // Adjust the number of rows and columns as needed
@@ -57,7 +58,7 @@ public class a_star {
         // Run the A* algorithm
         int[] start = { startX, startY };
         int[] goal = { goalX, goalY };
-        aStarSearch(grid, start, goal);
+        aStarSearch(grid, start, goal, heuristic);
     }
 
     public static void loadMap(String filename, int[][] grid) throws IOException {
@@ -110,6 +111,10 @@ public class a_star {
                          + (col - dest[1])
                                * (col - dest[1]));
     }
+    private static double calculateHValue1(int row, int col, int[] dest) {
+        return Math.abs(row - dest[0]) + Math.abs(col - dest[1]);
+    }
+    
 
     private static void tracePath(Cell[][] cellDetails,
                                   int[] dest)
@@ -148,7 +153,7 @@ public class a_star {
     }
 
     public static void aStarSearch(int[][] grid, int[] src,
-                                    int[] dest)
+                                    int[] dest, int heuristic)
     {
         if (!isValid(src[0], src[1])
             || !isValid(dest[0], dest[1])) {
@@ -227,7 +232,12 @@ public class a_star {
                 else if (!closedList[i - 1][j]
                          && isUnBlocked(grid, i - 1, j)) {
                     gNew = cellDetails[i][j].g + 1;
-                    hNew = calculateHValue(i - 1, j, dest);
+                    if(heuristic == 0){
+                        hNew = calculateHValue(i - 1, j, dest);
+                    }
+                    else{
+                        hNew = calculateHValue1(i - 1, j, dest);
+                    }
                     fNew = gNew + hNew;
 
                     if (cellDetails[i - 1][j].f
@@ -259,7 +269,12 @@ public class a_star {
                 else if (!closedList[i + 1][j]
                          && isUnBlocked(grid, i + 1, j)) {
                     gNew = cellDetails[i][j].g + 1;
-                    hNew = calculateHValue(i + 1, j, dest);
+                    if(heuristic == 0){
+                        hNew = calculateHValue(i - 1, j, dest);
+                    }
+                    else{
+                        hNew = calculateHValue1(i - 1, j, dest);
+                    }
                     fNew = gNew + hNew;
 
                     if (cellDetails[i + 1][j].f
@@ -290,7 +305,12 @@ public class a_star {
                 else if (!closedList[i][j + 1]
                          && isUnBlocked(grid, i, j + 1)) {
                     gNew = cellDetails[i][j].g + 1;
-                    hNew = calculateHValue(i, j + 1, dest);
+                    if(heuristic == 0){
+                        hNew = calculateHValue(i - 1, j, dest);
+                    }
+                    else{
+                        hNew = calculateHValue1(i - 1, j, dest);
+                    }
                     fNew = gNew + hNew;
 
                     if (cellDetails[i][j + 1].f
@@ -321,7 +341,12 @@ public class a_star {
                 else if (!closedList[i][j - 1]
                          && isUnBlocked(grid, i, j - 1)) {
                     gNew = cellDetails[i][j].g + 1;
-                    hNew = calculateHValue(i, j - 1, dest);
+                    if(heuristic == 0){
+                        hNew = calculateHValue(i - 1, j, dest);
+                    }
+                    else{
+                        hNew = calculateHValue1(i - 1, j, dest);
+                    }
                     fNew = gNew + hNew;
 
                     if (cellDetails[i][j - 1].f

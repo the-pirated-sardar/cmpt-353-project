@@ -32,6 +32,10 @@ def is_destination(row, col, dest):
 def calculate_h_value(row, col, dest):
     return ((row - dest[0]) ** 2 + (col - dest[1]) ** 2) ** 0.5
 
+def calculate_h_value1(row, col, dest):
+    return abs(row - dest[0]) + abs(col - dest[1])
+
+
 # Trace the path from source to destination
 def trace_path(cell_details, dest):
     #print("The Path is ")
@@ -54,7 +58,7 @@ def trace_path(cell_details, dest):
     print(len(path))
 
 # Implement the A* search algorithm
-def aStarSearch(grid, src, dest):
+def aStarSearch(grid, src, dest, heuristic):
     # Check if the source and destination are valid
     if not is_valid(src[0], src[1]) or not is_valid(dest[0], dest[1]):
         #print("Source or destination is invalid")
@@ -122,7 +126,10 @@ def aStarSearch(grid, src, dest):
                 else:
                     # Calculate the new f, g, and h values
                     g_new = cell_details[i][j].g + 1.0
-                    h_new = calculate_h_value(new_i, new_j, dest)
+                    if heuristic == 0:
+                        h_new = calculate_h_value(new_i, new_j, dest)
+                    else:
+                        h_new = calculate_h_value1(new_i, new_j, dest)
                     f_new = g_new + h_new
 
                     # If the cell is not in the open list or the new f value is smaller
