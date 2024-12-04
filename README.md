@@ -6,4 +6,4 @@ Open in terminal and then run command: python run_tests.py maps/random-64-64-20.
 
 
 # Statistical Analysis
-run command: python stat_test.py results.csv
+run command: python stat_test.py data_gathering/results.csv

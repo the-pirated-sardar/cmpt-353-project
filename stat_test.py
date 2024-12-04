@@ -2,6 +2,7 @@ import pandas as pd
 import scipy.stats as stats
 import argparse
 import matplotlib.pyplot as plt
+from sklearn.neighbors import LocalOutlierFactor
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import levene
@@ -10,8 +11,48 @@ def main(in_directory):
   
   df = pd.read_csv(in_directory)
   
-  # cleaning data
   df = df[df['time'] > 0.0]
+  
+  # Step 1: Handle heuristic == 0
+  df_heuristic_0 = df[df['heuristic'] == 0]
+
+  # Pivot the data for heuristic == 0
+  df_heuristic_0_pivot = df_heuristic_0.pivot(index='instance_num', columns='language', values='time')
+  df_heuristic_0_pivot = df_heuristic_0_pivot.dropna()
+
+  # Fit the LOF model for anomaly detection on heuristic == 0
+  model_0 = LocalOutlierFactor(n_neighbors=20)
+  y_heuristic_0 = model_0.fit_predict(df_heuristic_0_pivot.values)
+  df_heuristic_0_pivot['lof_outlier'] = y_heuristic_0
+
+  # Filter out outliers for heuristic == 0
+  df_heuristic_0_inliers = df_heuristic_0_pivot[df_heuristic_0_pivot['lof_outlier'] == 1]
+
+  # Step 2: Handle heuristic == 1
+  df_heuristic_1 = df[df['heuristic'] == 1]
+
+  # Pivot the data for heuristic == 1
+  df_heuristic_1_pivot = df_heuristic_1.pivot(index='instance_num', columns='language', values='time')
+  df_heuristic_1_pivot = df_heuristic_1_pivot.dropna()
+
+  # Fit the LOF model for anomaly detection on heuristic == 1
+  model_1 = LocalOutlierFactor(n_neighbors=20)
+  y_heuristic_1 = model_1.fit_predict(df_heuristic_1_pivot.values)
+  df_heuristic_1_pivot['lof_outlier'] = y_heuristic_1
+
+  # Filter out outliers for heuristic == 1
+  df_heuristic_1_inliers = df_heuristic_1_pivot[df_heuristic_1_pivot['lof_outlier'] == 1]
+
+  # Step 3: Combine the results
+  df_cleaned = pd.concat([df_heuristic_0_inliers, df_heuristic_1_inliers])
+  df_unpivoted = df_cleaned.reset_index().melt(id_vars=['instance_num'], value_vars=df_cleaned.columns[:-1], var_name='language', value_name='time')
+  df = df_unpivoted.merge(df[['instance_num', 'heuristic']].drop_duplicates(), on='instance_num', how='left')
+
+  #Just useful for debugging
+  #outliers = df_heuristic_0_pivot[df_heuristic_0_pivot['lof_outlier'] == -1]
+  #print(f"Detected outliers: \n{outliers}")
+  #outliers = df_heuristic_1_pivot[df_heuristic_1_pivot['lof_outlier'] == -1]
+  #print(f"Detected outliers: \n{outliers}")
   
   
   # outputting a histogram of time for every language
