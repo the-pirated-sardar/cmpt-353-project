@@ -1,5 +1,15 @@
 //reference: entire A* alg from geeksforgeeks (https://www.geeksforgeeks.org/a-search-algorithm/)
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <map>
+#include <string>
+#include <cfloat>
+#include <fstream>
+
+
 using namespace std;
 
 #define ROW 64

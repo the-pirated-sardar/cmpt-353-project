@@ -79,6 +79,11 @@ def main(in_directory):
   axes[3].set_xlabel('Execution Time')
   axes[3].set_ylabel('Frequency')
   
+  axes[4].hist(df[df['language'] == 'Rust']['time'], bins=25, color='orange', edgecolor='grey', alpha=0.7)
+  axes[4].set_title('Rust')
+  axes[4].set_xlabel('Execution Time')
+  axes[4].set_ylabel('Frequency')
+
   #plt.show()
   plt.savefig('histograms.png')
   
@@ -110,10 +115,10 @@ def main(in_directory):
   c_plus_plus = df[df['language'] == 'C++']['time']
   java = df[df['language'] == 'Java']['time']
   javascript = df[df['language'] == 'JavaScript']['time']
-  python = df[df['language'] == 'Python']['time']  
+  python = df[df['language'] == 'Python']['time']
+  rust = df[df['language'] == 'Rust']['time']
 
-  anova_groups = stats.f_oneway(c_plus_plus, java, javascript, python)
-  
+  anova_groups = stats.f_oneway(c_plus_plus, java, javascript, python, rust) 
   print("\n\nPerforming ANOVA...")
   print(f"f-statistic: {anova_groups.statistic}")
   print(f"p-value: {anova_groups.pvalue:.10e}")

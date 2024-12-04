@@ -1,0 +1,1 @@
+/Users/prateeksingh/Desktop/CMPT\ 353/Project/cmpt-353-project/data_gathering/language_implementations/a_star_rust/target/release/a_star_rust: /Users/prateeksingh/Desktop/CMPT\ 353/Project/cmpt-353-project/data_gathering/language_implementations/a_star_rust/src/main.rs

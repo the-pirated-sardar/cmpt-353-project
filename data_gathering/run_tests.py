@@ -46,11 +46,12 @@ def compile_executables():
     java_source = os.path.join("language_implementations", "a_star.java")
     js_source = os.path.join("language_implementations", "a_star.js")
     python_source = os.path.join("language_implementations", "a_star.py")
+    rust_source = os.path.join("language_implementations", "a_star_rust")
 
     # C++ Compilation
     if shutil.which("g++"):
         print("Compiling C++...")
-        cpp_exec = "a_star_cpp.exe"
+        cpp_exec = os.path.join("language_implementations", "a_star_cpp.exe")
         try:
             subprocess.run(["g++", "-o", cpp_exec, cpp_source], check=True)
             executables["C++"] = cpp_exec
@@ -64,29 +65,39 @@ def compile_executables():
         print("Compiling Java...")
         try:
             subprocess.run(["javac", java_source], check=True)
-            executables["Java"] = os.path.splitext(os.path.basename(java_source))[0]
+            java_exec = os.path.splitext(os.path.basename(java_source))[0]
+            executables["Java"] = java_exec
         except subprocess.CalledProcessError as e:
             print(f"Error compiling Java: {e}")
     else:
         print("Warning: javac not found. Skipping Java.")
 
-    # Node.js
+    # JavaScript (Node.js)
     if shutil.which("node"):
         executables["JavaScript"] = "node"
     else:
         print("Warning: Node.js not found. Skipping JavaScript.")
 
-    # Python "executable"
+    # Python "Executable"
     if os.path.exists(python_source):
         executables["Python"] = "python"
     else:
         print("Warning: Python implementation not found.")
 
+    # Rust Compilation
+    rust_exec = os.path.join(rust_source, "target", "release", "a_star_rust")
+    if shutil.which("cargo"):
+        print("Compiling Rust...")
+        try:
+            subprocess.run(["cargo", "build", "--release"], cwd=rust_source, check=True)
+            executables["Rust"] = rust_exec
+        except subprocess.CalledProcessError as e:
+            print(f"Error compiling Rust: {e}")
+    else:
+        print("Warning: Cargo not found. Skipping Rust.")
+
     print(f"Executables: {executables}")
     return executables
-
-
-
 
 def run_astar_executable(executable, lang, map_file, start, goal, heuristic):
     if lang == "Java":
@@ -96,7 +107,9 @@ def run_astar_executable(executable, lang, map_file, start, goal, heuristic):
     elif lang == "JavaScript":
         command = ["node", os.path.join("language_implementations", "a_star.js"), map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
     elif lang == "Python":
-        command = ["python", os.path.join("language_implementations", "a_star.py"), map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
+        command = [sys.executable, os.path.join("language_implementations", "a_star.py"), map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
+    elif lang == "Rust":
+        command = [executable, map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
     else:
         command = [executable, map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
 
@@ -128,9 +141,8 @@ def run_astar_executable(executable, lang, map_file, start, goal, heuristic):
         }
     except subprocess.CalledProcessError as e:
         print(f"Error running {lang} executable: {e}")
+        print(f"Standard Error Output: {e.stderr}")
         return None
-
-
 
 
 
@@ -150,29 +162,18 @@ def benchmark_languages(map_file, scen_file):
         goal = scenario['goal']
 
         for lang, executable in executables.items():
-            result = run_astar_executable(executable, lang, map_file, start, goal, 0)
+            for heuristic in [0, 1]:
+                result = run_astar_executable(executable, lang, map_file, start, goal, heuristic)
+                if result is not None:
+                    result.update({
+                        "language": lang,
+                        "instance_num": instance_num,
+                        "heuristic": heuristic
+                    })
+                    results.append(result)
+                else:
+                    print(f"Warning: No valid result for language {lang} with heuristic {heuristic}, skipping.")
 
-            if result is not None:
-                result.update({
-                    "language": lang,
-                    "instance_num": instance_num,
-                    "heuristic": 0
-                })
-                results.append(result)
-            else:
-                print(f"Warning: No valid result for language {lang}, skipping.")
-
-            result = run_astar_executable(executable, lang, map_file, start, goal, 0)
-
-            if result is not None:
-                result.update({
-                    "language": lang,
-                    "instance_num": instance_num,
-                    "heuristic": 1
-                })
-                results.append(result)
-            else:
-                print(f"Warning: No valid result for language {lang}, skipping.")
 
         # Increment instance number for each scenario
         instance_num += 1
