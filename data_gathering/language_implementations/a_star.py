@@ -2,7 +2,7 @@
 
 import math
 import heapq
-
+import sys
 # Define the Cell class
 class Cell:
     def __init__(self):
@@ -146,3 +146,40 @@ def aStarSearch(grid, src, dest, heuristic):
     # If the destination is not found after visiting all cells
     if not found_dest:
         print("Failed to find the destination cell")#
+
+def load_map(filename):
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    
+    # Skip the first 4 lines and process the rest
+    grid = []
+    for line in lines[4:]:  # Start reading from the 5th line (index 4)
+        if not line.startswith("type"):  # Skip lines that start with "type"
+            # Convert good spaces ('.') to 0 and bad spaces ('T' or '@') to 1
+            grid.append([1 if char == '.' else 0 for char in line.strip()])
+    
+    return grid
+
+
+def main():
+    if len(sys.argv) != 7:
+        print("Usage: python a_star_python.py <map_file> <start_x> <start_y> <goal_x> <goal_y> <heuristic>")
+        return
+
+    print("WELCOME TO PYTHON")
+    map_file = sys.argv[1]
+    start = (int(sys.argv[2]), int(sys.argv[3]))
+    goal = (int(sys.argv[4]), int(sys.argv[5]))
+    heuristic = int(sys.argv[6])
+
+    # Load the map
+    grid = load_map(map_file)
+
+    # Run A* search
+    path = aStarSearch(grid, start, goal, heuristic)
+    
+    # Output the path length
+    print(len(path) if path else 0)
+
+if __name__ == "__main__":
+    main()

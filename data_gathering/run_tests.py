@@ -45,19 +45,28 @@ def compile_executables():
     cpp_source = os.path.join("language_implementations", "a_star.cpp")
     java_source = os.path.join("language_implementations", "a_star.java")
     js_source = os.path.join("language_implementations", "a_star.js")
+    python_source = os.path.join("language_implementations", "a_star.py")
 
-    # C++
+    # C++ Compilation
     if shutil.which("g++"):
+        print("Compiling C++...")
         cpp_exec = "a_star_cpp.exe"
-        subprocess.run(["g++", "-o", cpp_exec, cpp_source], check=True)
-        executables["C++"] = cpp_exec
+        try:
+            subprocess.run(["g++", "-o", cpp_exec, cpp_source], check=True)
+            executables["C++"] = cpp_exec
+        except subprocess.CalledProcessError as e:
+            print(f"Error compiling C++: {e}")
     else:
         print("Warning: g++ not found. Skipping C++.")
 
-    # Java
+    # Java Compilation
     if shutil.which("javac"):
-        subprocess.run(["javac", java_source], check=True)
-        executables["Java"] = "a_star"
+        print("Compiling Java...")
+        try:
+            subprocess.run(["javac", java_source], check=True)
+            executables["Java"] = os.path.splitext(os.path.basename(java_source))[0]
+        except subprocess.CalledProcessError as e:
+            print(f"Error compiling Java: {e}")
     else:
         print("Warning: javac not found. Skipping Java.")
 
@@ -67,18 +76,16 @@ def compile_executables():
     else:
         print("Warning: Node.js not found. Skipping JavaScript.")
 
+    # Python "executable"
+    if os.path.exists(python_source):
+        executables["Python"] = "python"
+    else:
+        print("Warning: Python implementation not found.")
+
+    print(f"Executables: {executables}")
     return executables
 
 
-def run_astar_python(grid, start, goal, heuristic):
-    process = psutil.Process()
-    start_time = time.time()
-    a_star.aStarSearch(grid, start, goal, heuristic)  # Run the search
-    end_time = time.time()
-    cpu_usage = process.cpu_percent(interval=None)
-    return {
-        "time": end_time - start_time
-    }
 
 
 def run_astar_executable(executable, lang, map_file, start, goal, heuristic):
@@ -88,6 +95,8 @@ def run_astar_executable(executable, lang, map_file, start, goal, heuristic):
         command = [executable, "C++", map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
     elif lang == "JavaScript":
         command = ["node", os.path.join("language_implementations", "a_star.js"), map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
+    elif lang == "Python":
+        command = ["python", os.path.join("language_implementations", "a_star.py"), map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
     else:
         command = [executable, map_file, str(start[0]), str(start[1]), str(goal[0]), str(goal[1]), str(heuristic)]
 
@@ -100,19 +109,19 @@ def run_astar_executable(executable, lang, map_file, start, goal, heuristic):
         end_time = time.time()
         cpu_usage = process.cpu_percent(interval=end_time-start_time)
 
-        output = result.stdout.strip()
+        #output = result.stdout.strip()
 
-        if output:
-            try:
-                path_length = int(output)
+        #if output:
+            #try:
+            #    path_length = int(output)
                 #print(f"Path Length from {lang}: {path_length}")
-            except ValueError:
+            #except ValueError:
                 # Handle case where output is not a valid integer
                 #print(f"Error: Unable to convert output to an integer: '{output}'")
-                path_length = -1  # Indicate an error in parsing the path length
-        else:
+            #    path_length = -1  # Indicate an error in parsing the path length
+        #else:
             #print(f"Error: Empty output received from {lang}.")
-            path_length = 0  # Indicate no path length found
+            #path_length = 0  # Indicate no path length found
 
         return {
             "time": end_time - start_time
@@ -133,20 +142,15 @@ def benchmark_languages(map_file, scen_file):
     print("Compiling executables...")
     executables = compile_executables()
 
-    # Add Python as one of the benchmarks
-    executables["Python"] = None
-
     instance_num = 1  # Initialize instance number for scenarios
 
     for scenario in scenarios:
+        print(instance_num)
         start = scenario['start']
         goal = scenario['goal']
 
         for lang, executable in executables.items():
-            if lang == "Python":
-                result = run_astar_python(grid, start, goal, 0)
-            else:
-                result = run_astar_executable(executable, lang, map_file, start, goal, 0)
+            result = run_astar_executable(executable, lang, map_file, start, goal, 0)
 
             if result is not None:
                 result.update({
@@ -158,10 +162,7 @@ def benchmark_languages(map_file, scen_file):
             else:
                 print(f"Warning: No valid result for language {lang}, skipping.")
 
-            if lang == "Python":
-                result = run_astar_python(grid, start, goal, 1)
-            else:
-                result = run_astar_executable(executable, lang, map_file, start, goal, 1)
+            result = run_astar_executable(executable, lang, map_file, start, goal, 0)
 
             if result is not None:
                 result.update({
