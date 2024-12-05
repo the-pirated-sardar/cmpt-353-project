@@ -28,9 +28,9 @@ The following plots are generated and saved in the plots directory:
      - istogram_Rust.png
         
 3. Heuristic Comparison Bar Chart:
-    3.1. heuristic_comparison_bar_chart_updated.png: A bar chart comparing average execution times for each language across both heuristics. The averages are displayed above the bars for clarity.
+      - heuristic_comparison_bar_chart_updated.png: A bar chart comparing average execution times for each language across both heuristics. The averages are displayed above the bars for clarity.
 
-4. Scatterplot of Execution Time against Instance Number (Log Scale)
+5. Scatterplot of Execution Time against Instance Number (Log Scale)
       - exec_time_vs_instance_num_scatterplot.png
 
 ## Notes
