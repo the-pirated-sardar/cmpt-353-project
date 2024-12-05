@@ -20,7 +20,9 @@ def main(in_directory):
     figure, axes = plt.subplots(1, len(languages), figsize=(15, 6))
     
     for idx, language in enumerate(languages):
-        axes[idx].hist(df[df['language'] == language]['time'], bins=25, edgecolor='grey', alpha=0.7)
+        language_times = df[df['language'] == language]
+        language_times = language_times[language_times['time'] < language_times['time'].quantile(0.95)]
+        axes[idx].hist(language_times['time'], bins=25, edgecolor='grey', alpha=0.7)
         axes[idx].set_title(language)
         axes[idx].set_xlabel('Execution Time')
         axes[idx].set_ylabel('Frequency')
@@ -29,8 +31,9 @@ def main(in_directory):
 
     # Individual histograms for each language
     for language in languages:
-        plt.figure(figsize=(8, 6))
-        plt.hist(df[df['language'] == language]['time'], bins=25, color='skyblue', edgecolor='grey', alpha=0.7)
+        language_times = df[df['language'] == language]
+        language_times = language_times[language_times['time'] < language_times['time'].quantile(0.95)]
+        plt.hist(language_times['time'], bins=25, color='skyblue', edgecolor='grey', alpha=0.7)
         plt.title(f'Execution Time Histogram for {language}')
         plt.xlabel('Execution Time')
         plt.ylabel('Frequency')
