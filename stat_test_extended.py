@@ -92,6 +92,9 @@ def main(in_directory):
     # Save plot
     plt.savefig(os.path.join(plots_dir, 'exec_time_vs_instance_num_with_anomalies.png'), dpi=300)
     plt.close()
+
+    #update df to remove anomalies
+    df = df[df['is_anomaly'] == False]
     
     # Combined histogram for all languages
     languages = df['language'].unique()
