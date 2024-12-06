@@ -25,7 +25,73 @@ def main(in_directory):
     os.makedirs(plots_dir, exist_ok=True)
     
     df = pd.read_csv(in_directory)
-    #df = df[df['time'] > 0.0]
+  
+    # Data cleaning
+    df = df[df['time'] > 0.0]
+    # Heuristic == 0
+    df_heuristic_0 = df[df['heuristic'] == 0]
+    df_heuristic_0_pivot = df_heuristic_0.pivot(index='instance_num', columns='language', values='time')
+    df_heuristic_0_pivot = df_heuristic_0_pivot.dropna()
+    model_0 = LocalOutlierFactor(n_neighbors=20)
+    y_heuristic_0 = model_0.fit_predict(df_heuristic_0_pivot.values)
+    df_heuristic_0_pivot['lof_outlier'] = y_heuristic_0
+    df_heuristic_0_pivot['is_anomaly'] = df_heuristic_0_pivot['lof_outlier'] == -1
+
+    # Heuristic == 1
+    df_heuristic_1 = df[df['heuristic'] == 1]
+    df_heuristic_1_pivot = df_heuristic_1.pivot(index='instance_num', columns='language', values='time')
+    df_heuristic_1_pivot = df_heuristic_1_pivot.dropna()
+    model_1 = LocalOutlierFactor(n_neighbors=20)
+    y_heuristic_1 = model_1.fit_predict(df_heuristic_1_pivot.values)
+    df_heuristic_1_pivot['lof_outlier'] = y_heuristic_1
+    df_heuristic_1_pivot['is_anomaly'] = df_heuristic_1_pivot['lof_outlier'] == -1
+
+    # Combine the results
+    df_cleaned = pd.concat([df_heuristic_0_pivot, df_heuristic_1_pivot])
+    df_cleaned = df_cleaned.reset_index()
+    
+    # Melt data for visualization
+    df_cleaned_melted = df_cleaned.melt(
+        id_vars=['instance_num', 'is_anomaly'], 
+        value_vars=[col for col in df_cleaned.columns if col not in ['lof_outlier', 'is_anomaly', 'instance_num']],
+        var_name='language', 
+        value_name='time'
+    )
+    df = df_cleaned_melted.merge(
+        df[['instance_num', 'heuristic']].drop_duplicates(), 
+        on='instance_num', 
+        how='left'
+    )
+
+    # Plot all points, highlighting anomalies
+    seaborn.set()
+    plt.figure(figsize=(12, 8))
+
+    # Scatterplot for inliers and outliers
+    seaborn.scatterplot(
+        data=df, 
+        x='instance_num', 
+        y='time', 
+        hue='language', 
+        style='is_anomaly', 
+        markers={False: 'o', True: 'X'}, 
+        palette='tab10',
+        s=60,  # Marker size
+        edgecolor='k',  # Black edge for points
+        linewidth=0.5
+    )
+
+    # Log scale for better visualization
+    plt.yscale("log")
+    plt.title("Execution Time vs. Instance Number (Log Scale)")
+    plt.xlabel("Instance Number")
+    plt.ylabel("Execution Time (Log Scale)")
+    plt.legend(title="Language", loc='upper right', bbox_to_anchor=(1.05, 1))
+    plt.grid(linestyle='--', alpha=0.7)
+    
+    # Save plot
+    plt.savefig(os.path.join(plots_dir, 'exec_time_vs_instance_num_with_anomalies.png'), dpi=300)
+    plt.close()
     
     # Combined histogram for all languages
     languages = df['language'].unique()
