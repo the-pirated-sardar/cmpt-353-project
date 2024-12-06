@@ -47,29 +47,41 @@ def main(in_directory):
     df_heuristic_1_pivot['is_anomaly'] = df_heuristic_1_pivot['lof_outlier'] == -1
 
     # Combine the results
-    df_cleaned = pd.concat([df_heuristic_0_pivot, df_heuristic_1_pivot])
-    df_cleaned = df_cleaned.reset_index()
-    
-    # Melt data for visualization
-    df_cleaned_melted = df_cleaned.melt(
+    df_heuristic_0_cleaned = df_heuristic_0_pivot.reset_index()
+    df_heuristic_1_cleaned = df_heuristic_1_pivot.reset_index()
+
+    # Melt the data for each heuristic
+    df_heuristic_0_melted = df_heuristic_0_cleaned.melt(
         id_vars=['instance_num', 'is_anomaly'], 
-        value_vars=[col for col in df_cleaned.columns if col not in ['lof_outlier', 'is_anomaly', 'instance_num']],
+        value_vars=[col for col in df_heuristic_0_cleaned.columns if col not in ['lof_outlier', 'is_anomaly', 'instance_num']],
         var_name='language', 
         value_name='time'
     )
-    df = df_cleaned_melted.merge(
-        df[['instance_num', 'heuristic']].drop_duplicates(), 
+
+    df_heuristic_1_melted = df_heuristic_1_cleaned.melt(
+        id_vars=['instance_num', 'is_anomaly'], 
+        value_vars=[col for col in df_heuristic_1_cleaned.columns if col not in ['lof_outlier', 'is_anomaly', 'instance_num']],
+        var_name='language', 
+        value_name='time'
+    )
+
+    # Combine the cleaned and melted data
+    df_cleaned_combined = pd.concat([df_heuristic_0_melted, df_heuristic_1_melted])
+
+    # Merge the heuristic column to the cleaned data
+    df_cleaned_combined = df_cleaned_combined.merge(
+        df[['instance_num', 'heuristic']].drop_duplicates(),
         on='instance_num', 
         how='left'
     )
 
-    # Plot all points, highlighting anomalies
+    # Now plot again
     seaborn.set()
     plt.figure(figsize=(12, 8))
 
     # Scatterplot for inliers and outliers
     seaborn.scatterplot(
-        data=df, 
+        data=df_cleaned_combined, 
         x='instance_num', 
         y='time', 
         hue='language', 
@@ -86,15 +98,19 @@ def main(in_directory):
     plt.title("Execution Time vs. Instance Number (Log Scale)")
     plt.xlabel("Instance Number")
     plt.ylabel("Execution Time (Log Scale)")
+
+    # Adjust legend position to avoid clipping
     plt.legend(title="Language", loc='upper right', bbox_to_anchor=(1.05, 1))
-    plt.grid(linestyle='--', alpha=0.7)
-    
+
+    # Apply tight layout to ensure legend fits
+    plt.tight_layout()
+
     # Save plot
     plt.savefig(os.path.join(plots_dir, 'exec_time_vs_instance_num_with_anomalies.png'), dpi=300)
     plt.close()
 
     #update df to remove anomalies
-    df = df[df['is_anomaly'] == False]
+    df = df[df_cleaned_combined['is_anomaly'] == False]
     
     # Combined histogram for all languages
     languages = df['language'].unique()
